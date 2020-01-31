@@ -1,8 +1,5 @@
--- SHOW DATABASES;
 USE sakila;
-SHOW TABLES;
 
-/*
 -- 1a
 SELECT first_name, last_name 
 FROM actor 
@@ -35,7 +32,7 @@ ORDER BY last_name, first_name;
 -- 2d
 SELECT country_id, country
 FROM country
-WHERE country IN ('Afghanistan','Bangladesh','China')
+WHERE country IN ('Afghanistan','Bangladesh','China');
 
 -- 3a
 ALTER TABLE actor ADD description BLOB;
@@ -99,7 +96,8 @@ ORDER BY c.last_name, c.first_name;
 -- 7a
 SELECT f.title
 FROM film f 
-WHERE (f.title LIKE ('K%') OR f.title LIKE ('Q%'));
+JOIN language l ON f.language_id = l.language_id
+WHERE (f.title LIKE ('K%') OR f.title LIKE ('Q%')) AND l.name = 'English';
 
 -- 7b
 SELECT a.first_name, a.last_name
@@ -112,7 +110,7 @@ WHERE f.title = 'ALONE TRIP';
 SELECT cl.name, c.email 
 FROM customer_list cl
 JOIN customer c ON cl.ID = c.customer_id
-WHERE cl.country = 'Canada'
+WHERE cl.country = 'Canada';
 
 -- 7d
 SELECT f.title
@@ -120,14 +118,27 @@ FROM film f
 JOIN film_category fc ON  f.film_id = fc.film_id
 JOIN category c on fc.category_id = c.category_id
 WHERE c.name = 'Family';
-*/
 
-/*
+-- 7e
+SELECT f.title, count(r.rental_id) as 'rentals'
+FROM rental r
+JOIN inventory i ON r.inventory_id = i.inventory_id
+JOIN film f ON i.film_id = f.film_id
+GROUP BY f.title
+ORDER BY count(r.rental_id) desc;
+
+-- 7f
+SELECT * FROM sales_by_store;
+
+-- 7g
+SELECT s.store_id, ci.city, co.country
+FROM store s
+JOIN address a ON s.address_id = a.address_id
+JOIN city ci ON a.city_id = ci.city_id
+JOIN country co ON ci.country_id = co.country_id;
+ 
 -- 7h
-SELECT 
-c.name AS 'category_name'
-,sum(p.amount) AS 'total_revenue'
-
+SELECT c.name AS 'category_name' ,sum(p.amount) AS 'total_revenue'
 FROM category c
 LEFT JOIN film_category f on c.category_id = f.category_id
 LEFT JOIN inventory i on f.film_id = i.film_id
@@ -136,4 +147,20 @@ LEFT JOIN payment p on r.rental_id = p.rental_id
 GROUP BY c.name
 ORDER BY sum(p.amount) desc
 LIMIT 5;
-*/
+
+-- 8a
+CREATE VIEW topfive AS SELECT c.name AS 'category_name' ,sum(p.amount) AS 'total_revenue'
+FROM category c
+LEFT JOIN film_category f on c.category_id = f.category_id
+LEFT JOIN inventory i on f.film_id = i.film_id
+LEFT JOIN rental r on i.inventory_id = r.inventory_id
+LEFT JOIN payment p on r.rental_id = p.rental_id
+GROUP BY c.name
+ORDER BY sum(p.amount) DESC
+LIMIT 5;
+
+-- 8b
+SELECT * FROM sakila.topfive;
+
+-- 8c
+DROP VIEW topfive;
